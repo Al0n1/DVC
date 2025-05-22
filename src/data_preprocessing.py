@@ -35,9 +35,6 @@ def run_data_preprocessing(base_path: str):
     print(f"Preprocessing completed. Files saved in {data_processed_dir}")
 
 if __name__ == "__main__":
-    # This block allows the script to be run standalone.
-    # When DVC executes `python src/data_preprocessing.py`,
-    # this __main__ block will correctly set `base_path` to the project root.
     current_script_dir = os.path.dirname(os.path.abspath(__file__))
     project_dir = os.path.abspath(os.path.join(current_script_dir, '..'))
     run_data_preprocessing(base_path=project_dir)
