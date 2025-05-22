@@ -27,9 +27,6 @@ def run_model_training(base_path: str):
     print(f"Model saved to {model_path}")
 
 if __name__ == "__main__":
-    # This block allows the script to be run standalone.
-    # When DVC executes `python src/train_model.py`,
-    # this __main__ block will correctly set `base_path` to the project root.
     current_script_dir = os.path.dirname(os.path.abspath(__file__))
     project_dir = os.path.abspath(os.path.join(current_script_dir, '..'))
     run_model_training(base_path=project_dir)
