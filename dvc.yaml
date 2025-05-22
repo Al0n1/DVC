@@ -1,0 +1,62 @@
+stages:
+  collect_data:
+    cmd: python src/data_collection.py
+    deps:
+    - src/data_collection.py
+    outs:
+    - data/raw/iris_dataset.csv
+
+  preprocess_data:
+    cmd: python src/data_preprocessing.py
+    deps:
+    - src/data_preprocessing.py
+    - data/raw/iris_dataset.csv
+    outs:
+    - data/processed/X_train.npy
+    - data/processed/X_test.npy
+    - data/processed/y_train.npy
+    - data/processed/y_test.npy
+    - data/processed/scaler.joblib
+
+  train_model:
+    cmd: python src/train_model.py
+    deps:
+    - src/train_model.py
+    - data/processed/X_train.npy
+    - data/processed/y_train.npy
+    # scaler.joblib is not directly used in train_model.py but is an output of preprocess_data
+    # and conceptually linked to the processed data state.
+    # It's good practice to list all relevant processed data dependencies.
+    - data/processed/scaler.joblib 
+    outs:
+    - models/rf_model.joblib
+
+  test_model:
+    cmd: python src/test_model.py
+    deps:
+    - src/test_model.py
+    - models/rf_model.joblib
+    - data/processed/X_test.npy
+    - data/processed/y_test.npy
+    # scaler.joblib might be needed if test_model.py were to use it for inverse transforms or feature name reconstruction.
+    - data/processed/scaler.joblib 
+    # DVC will automatically track files created in the 'dvclive' directory by dvclive.Live
+    # if 'dvclive' is specified in the global metrics/plots sections.
+    # Explicitly listing them in 'outs' for this stage is not strictly necessary for dvclive's functionality
+    # but can be done for clarity if desired. However, dvclive handles its own output tracking.
+    # For now, we rely on the global metrics/plots sections.
+
+metrics:
+- dvclive/metrics.json
+
+plots:
+- dvclive/plots/metrics: # For scalar metrics logged by dvclive
+    x: step # dvclive logs steps for metrics automatically
+- dvclive/plots/images: # For images, like confusion matrix if saved as an image
+    # Example: if confusion_matrix.png is saved in dvclive/plots/images/
+    # DVC will pick it up. dvclive.log_sklearn_plot usually handles this.
+    # If live.log_text was used for classification_report.txt, it's an artifact, not a plot.
+    # dvclive.log_text("classification_report.txt", report) creates dvclive/classification_report.txt
+    # This is not a plot, but an artifact. DVC can track artifacts if listed in 'outs' or if the dir is an out.
+    # For simplicity, we'll focus on metrics.json and any plots dvclive generates in standard locations.
+    # The text report will be in dvclive/classification_report.txt
